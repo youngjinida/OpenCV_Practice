@@ -262,6 +262,12 @@ void practice_10()
 	destroyAllWindows();
 }
 
+void printMat(InputArray _mat)
+{
+	Mat mat = _mat.getMat();
+	std::cout << mat << "\n";
+}
+
 void practice_11()
 {
 	uchar data[] = { 1,2,3,4,5,6 };
@@ -270,10 +276,4 @@ void practice_11()
 
 	std::vector<float> v1 = { 1.2f, 3.4f, -2.1f };
 	printMat(v1);
-}
-
-void printMat(InputArray _mat)
-{
-	Mat mat = _mat.getMat();
-	std::cout << mat << "\n";
 }

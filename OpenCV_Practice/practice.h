@@ -17,6 +17,8 @@ void practice_8();
 void practice_9();
 void practice_10();
 void practice_11();
-
+void practice_12();
+void practice_13();
 void printMat(InputArray _mat);
+
 #endif

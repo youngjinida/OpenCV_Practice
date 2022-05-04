@@ -277,3 +277,78 @@ void practice_11()
 	std::vector<float> v1 = { 1.2f, 3.4f, -2.1f };
 	printMat(v1);
 }
+
+void practice_12()
+{
+	VideoCapture cap("video.mp4");
+
+	if (!cap.isOpened())
+	{
+		std::cerr << "Camera open failed\n";
+	}
+
+	std::cout << "Widht:" << cvRound(cap.get(CAP_PROP_FRAME_WIDTH)) << "\n";
+	std::cout << "Height:" << cvRound(cap.get(CAP_PROP_FRAME_HEIGHT)) << "\n";
+
+	double fps = cap.get(CAP_PROP_FPS);
+	int w = cvRound(cap.get(CAP_PROP_FRAME_WIDTH));
+	int h = cvRound(cap.get(CAP_PROP_FRAME_HEIGHT));
+	int delay = cvRound(1000 / fps);
+	int fourcc = VideoWriter::fourcc('D', 'I', 'V', 'X');
+
+	VideoWriter out("output.avi", fourcc, fps, Size(w, h));
+
+	if (!out.isOpened())
+	{
+		std::cerr << "file open failed!\n";
+	}
+
+	Mat frame, inv_frame;
+	while (1)
+	{
+		cap >> frame;
+		if (frame.empty())
+			break;
+
+		inv_frame = ~frame;
+		out << inv_frame;
+
+		imshow("frame", frame);
+		imshow("inv", inv_frame);
+
+		if (waitKey(delay) == 27)
+			break;
+	}
+
+	destroyAllWindows();
+}
+
+void practice_13()
+{
+	Mat img(400, 400, CV_8UC3, Scalar(255, 255, 255));
+
+	line(img, Point(50, 50), Point(200, 50), Scalar(0, 0, 255));
+	line(img, Point(50, 100), Point(200, 100), Scalar(255, 0, 255), 3);
+	line(img, Point(50, 150), Point(200, 150), Scalar(255, 0, 0));
+
+	line(img, Point(250, 50), Point(350, 100), Scalar(0, 0, 255), 1, LINE_4);
+	line(img, Point(250, 70), Point(350, 120), Scalar(255, 0, 255), 1, LINE_8);
+	line(img, Point(250, 90), Point(350, 140), Scalar(0, 0, 255), 1, LINE_AA);
+
+	arrowedLine(img, Point(50, 200), Point(150, 200), Scalar(0, 0, 255), 1);
+	arrowedLine(img, Point(50, 250), Point(350, 250), Scalar(255, 0, 255), 1);
+	arrowedLine(img, Point(50, 300), Point(350, 300), Scalar(255, 0, 0), 1, LINE_AA, 0, 0.05);
+
+	drawMarker(img, Point(50, 350), Scalar(0, 0, 255), MARKER_CROSS);
+	drawMarker(img, Point(100, 350), Scalar(0, 0, 255), MARKER_TILTED_CROSS);
+	drawMarker(img, Point(150, 350), Scalar(0, 0, 255), MARKER_STAR);
+	drawMarker(img, Point(200, 350), Scalar(0, 0, 255), MARKER_DIAMOND);
+	drawMarker(img, Point(250, 350), Scalar(0, 0, 255), MARKER_SQUARE);
+	drawMarker(img, Point(300, 350), Scalar(0, 0, 255), MARKER_TRIANGLE_UP);
+	drawMarker(img, Point(350, 350), Scalar(0, 0, 255), MARKER_TRIANGLE_DOWN);
+
+	imshow("img", img);
+	waitKey(0);
+
+	destroyAllWindows();
+}

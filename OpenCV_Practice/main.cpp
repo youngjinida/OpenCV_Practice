@@ -6,47 +6,27 @@ using namespace cv;
 
 int main()
 {
-	VideoCapture cap("video.mp4");
+	Mat img(400, 400, CV_8UC3, Scalar(255, 255, 255));
 
-	if (!cap.isOpened())
-	{
-		std::cerr << "Camera open failed\n";
-		return -1;
-	}
+	rectangle(img, Rect(50, 50, 100, 50), Scalar(0, 0, 255), 2);
+	rectangle(img, Rect(50, 150, 100, 50), Scalar(0, 0, 255), -1);
 
-	std::cout << "Widht:" << cvRound(cap.get(CAP_PROP_FRAME_WIDTH)) << "\n";
-	std::cout << "Height:" << cvRound(cap.get(CAP_PROP_FRAME_HEIGHT)) << "\n";
+	circle(img, Point(300, 120), 30, Scalar(255, 255, 0), -1, LINE_AA);
+	circle(img, Point(300, 120), 60, Scalar(255, 0, 0), 3, LINE_AA);
 
-	double fps = cap.get(CAP_PROP_FPS);
-	int w = cvRound(cap.get(CAP_PROP_FRAME_WIDTH));
-	int h = cvRound(cap.get(CAP_PROP_FRAME_HEIGHT));
-	int delay = cvRound(1000 / fps);
-	int fourcc = VideoWriter::fourcc('D', 'I', 'V', 'X');
+	ellipse(img, Point(120, 300), Size(60, 30), 20, 0, 270, Scalar(255, 255, 0), -1, LINE_AA);
+	ellipse(img, Point(120, 300), Size(100, 50), 20, 0, 360, Scalar(0, 255, 0), 2, LINE_AA);
 
-	VideoWriter out("output.avi", fourcc, fps, Size(w, h));
+	std::vector<Point> pts;
+	pts.push_back(Point(250, 250));
+	pts.push_back(Point(300, 250));
+	pts.push_back(Point(300, 300));
+	pts.push_back(Point(350, 300));
+	pts.push_back(Point(350, 350));
+	pts.push_back(Point(250, 350));
+	polylines(img, pts, true, Scalar(255, 0, 255), 2);
 
-	if (!out.isOpened())
-	{
-		std::cerr << "file open failed!\n";
-		return -1;
-	}
-
-	Mat frame, inv_frame;
-	while (1)
-	{
-		cap >> frame;
-		if (frame.empty())
-			break;
-
-		inv_frame = ~frame;
-		out << inv_frame;
-	
-		imshow("frame", frame);
-		imshow("inv", inv_frame);
-
-		if (waitKey(delay) == 27)
-			break;
-	}
-
+	imshow("img", img);
+	waitKey();
 	destroyAllWindows();
 }

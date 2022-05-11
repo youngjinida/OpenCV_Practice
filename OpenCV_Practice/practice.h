@@ -20,5 +20,7 @@ void practice_11();
 void practice_12();
 void practice_13();
 void printMat(InputArray _mat);
-
+void drawPolys();
+void drawText1();
+void drawText2();
 #endif

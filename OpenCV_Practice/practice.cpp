@@ -352,3 +352,80 @@ void practice_13()
 
 	destroyAllWindows();
 }
+
+void drawPolys()
+{
+	Mat img(400, 400, CV_8UC3, Scalar(255, 255, 255));
+
+	rectangle(img, Rect(50, 50, 100, 50), Scalar(0, 0, 255), 2);
+	rectangle(img, Rect(50, 150, 100, 50), Scalar(0, 0, 255), -1);
+
+	circle(img, Point(300, 120), 30, Scalar(255, 255, 0), -1, LINE_AA);
+	circle(img, Point(300, 120), 60, Scalar(255, 0, 0), 3, LINE_AA);
+
+	ellipse(img, Point(120, 300), Size(60, 30), 20, 0, 270, Scalar(255, 255, 0), -1, LINE_AA);
+	ellipse(img, Point(120, 300), Size(100, 50), 20, 0, 360, Scalar(0, 255, 0), 2, LINE_AA);
+
+	std::vector<Point> pts;
+	pts.push_back(Point(250, 250));
+	pts.push_back(Point(300, 250));
+	pts.push_back(Point(300, 300));
+	pts.push_back(Point(350, 300));
+	pts.push_back(Point(350, 350));
+	pts.push_back(Point(250, 350));
+	polylines(img, pts, true, Scalar(255, 0, 255), 2);
+
+	imshow("img", img);
+	waitKey();
+	destroyAllWindows();
+}
+
+void drawText1()
+{
+	Mat img(500, 800, CV_8UC3, Scalar(255, 255, 255));
+	putText(img, "FONT_HERSHEY_SIMPLEX", Point(20, 50),
+		FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 1, 8);
+	putText(img, "FONT_HERSHEY_PLAIN", Point(20, 100),
+		FONT_HERSHEY_PLAIN, 1, Scalar(0, 0, 255));
+	putText(img, "FONT_HERSHEY_DUPLEX", Point(20, 150),
+		FONT_HERSHEY_DUPLEX, 1, Scalar(0, 0, 255));
+	putText(img, "FONT_HERSHEY_COMPLEX", Point(20, 200),
+		FONT_HERSHEY_COMPLEX, 1, Scalar(255, 0, 0));
+	putText(img, "FONT_HERSHEY_TRIPLEX", Point(20, 250),
+		FONT_HERSHEY_TRIPLEX, 1, Scalar(255, 0, 0));
+	putText(img, "FONT_HERSHEY_COMPLEX_SMALL", Point(20, 300),
+		FONT_HERSHEY_COMPLEX_SMALL, 1, Scalar(255, 0, 0));
+	putText(img, "FONT_HERSHEY_SCRIPT_SIMPLEX", Point(20, 350),
+		FONT_HERSHEY_SCRIPT_SIMPLEX, 1, Scalar(255, 0, 255));
+	putText(img, "FONT_HERSHEY_SCRIPT_COMPLEX", Point(20, 400),
+		FONT_HERSHEY_SCRIPT_COMPLEX, 1, Scalar(255, 0, 255));
+	putText(img, "FONT_HERSHEY_COMPLEX | FONT_ITALIC", Point(20, 450),
+		FONT_HERSHEY_COMPLEX | FONT_ITALIC, 1, Scalar(255, 0, 0));
+
+	imshow("img", img);
+	waitKey();
+	destroyAllWindows();
+}
+
+void drawText2()
+{
+	Mat img(240, 640, CV_8UC3, Scalar(255, 255, 255));
+
+	const String text = "Hello, OpenCV";
+	const int fontFace = FONT_HERSHEY_TRIPLEX;
+	const double font_scale = 2.0;
+	const int thickness = 1;
+
+	Size textSize = getTextSize(text, fontFace, font_scale, thickness, 0);
+	Size sizeImage = img.size();
+
+	Point org(((sizeImage.width - textSize.width) / 2), (sizeImage.height + textSize.height) / 2);
+	putText(img, text, org, fontFace, font_scale, Scalar(255, 0, 0), thickness, false); // 좌측 하단을 기준으로 생성
+
+	rectangle(img, org, org + Point(textSize.width, -textSize.height),
+		Scalar(255, 0, 0), 1);
+
+	imshow("img", img);
+	waitKey();
+	destroyAllWindows();
+}

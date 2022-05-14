@@ -23,4 +23,16 @@ void printMat(InputArray _mat);
 void drawPolys();
 void drawText1();
 void drawText2();
+void keyboard();
+void onMouse(int evt, int x, int y, int flags, void* userdata);
+bool isEmpty(Mat& img);
+void mouse();
+void on_level_change(int pos, void* userdata);
+void trackbar_practice();
+void writeData(String filename);
+void readData(String filename);
+void mask_setTo();
+void mask_copyTo();
+void time_copyTo();
+void util();
 #endif

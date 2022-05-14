@@ -6,4 +6,5 @@ using namespace cv;
 
 int main()
 {
+	util();
 }

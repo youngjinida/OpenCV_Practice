@@ -429,3 +429,246 @@ void drawText2()
 	waitKey();
 	destroyAllWindows();
 }
+
+void keyboard()
+{
+
+	Mat img = imread("lenna.tif", IMREAD_GRAYSCALE);
+
+	if (img.empty())
+	{
+		std::cerr << "Image load failed!\n";
+	}
+
+	namedWindow("img");
+	imshow("img", img);
+
+	while (1)
+	{
+		int key = waitKey();
+
+		if (key == 'i' || key == 'I')
+		{
+			img = ~img;
+			imshow("img", img);
+		}
+		else if (key == 27)
+			break;
+	}
+
+	destroyAllWindows();
+}
+
+bool isEmpty(Mat& img)
+{
+	if (img.empty())
+	{
+		std::cerr << "Image load failed!\n";
+		return true;
+	}
+	else
+		return false;
+
+}
+
+Mat mouse_img, mouse_org;
+Point ptOld;
+
+void onMouse(int evt, int x, int y, int flags, void* userdata)
+{
+	switch (evt)
+	{
+	case EVENT_LBUTTONDOWN:
+		ptOld = Point(x, y);
+		std::cout << "Event_LBUTTONDOWN: " << x << ", " << y << "\n";
+		break;
+	case EVENT_LBUTTONUP:
+		std::cout << "Event_LBUTTONUP: " << x << ", " << y << "\n";
+		break;
+	case EVENT_MOUSEMOVE:
+		if (flags & EVENT_FLAG_LBUTTON)
+		{
+			line(mouse_img, ptOld, Point(x, y), Scalar(0, 255, 255), 2);
+			imshow("img", mouse_img);
+			ptOld = Point(x, y);
+		}
+		break;
+	case EVENT_RBUTTONDOWN:
+		mouse_org.copyTo(mouse_img);
+		std::cout << "Event_RBUTTONDOWN: " << x << ", " << y << "\n";
+		imshow("img", mouse_img);
+		break;
+	case EVENT_RBUTTONUP:
+		std::cout << "Event_RBUTTONUP: " << x << ", " << y << "\n";
+		break;
+	default:
+		break;
+	}
+}
+
+void mouse()
+{
+	mouse_img = imread("lenna.tif");
+	mouse_img.copyTo(mouse_org);
+
+	namedWindow("img");
+	setMouseCallback("img", onMouse);
+
+	imshow("img", mouse_img);
+	waitKey();
+}
+
+void on_level_change(int pos, void* userdata)
+{
+	Mat img = *(Mat*)userdata;
+	img.setTo(pos);
+	imshow("img", img);
+}
+
+void trackbar_practice()
+{
+	Mat img = Mat::zeros(400, 400, CV_8UC1);
+
+	namedWindow("img");
+	createTrackbar("Level", "img", 0, 255, on_level_change, (void*)&img);
+
+	imshow("img", img);
+	waitKey();
+}
+
+void writeData(String filename)
+{
+	String name = "Jane";
+	int age = 10;
+	Point pt(100, 200);
+	std::vector<int> score = { 80, 90, 50 };
+	Mat mat = (Mat_<float>(2, 2) << 1.0f, 1.5f, 2.0f, 3.2f);
+
+	FileStorage fs(filename, FileStorage::WRITE);
+
+	if (!fs.isOpened())
+	{
+		std::cerr << "File open failed!\n";
+		return;
+	}
+
+	fs << "name" << name;
+	fs << "age" << age;
+	fs << "point" << pt;
+	fs << "score" << score;
+	fs << "data" << mat;
+
+	fs.release();
+}
+
+void readData(String filename)
+{
+	String name;
+	int age;
+	Point pt;
+	std::vector<int> scores;
+	Mat mat;
+	
+	FileStorage fs(filename, FileStorage::READ);
+
+	if (!fs.isOpened())
+	{
+		std::cerr << "File open failed\n";
+		return;
+	}
+
+	fs["name"] >> name;
+	fs["age"] >> age;
+	fs["point"] >> pt;
+	fs["score"] >> scores;
+	fs["data"] >> mat;
+
+	fs.release();
+
+	std::cout << "name: " << name << "\n";
+	std::cout << "age: " << age << "\n";
+	std::cout << "point: " << pt << "\n";
+	std::cout << "scores: " << Mat(scores).t() << "\n";
+	std::cout << "data:\n " << mat << "\n";
+}
+
+void mask_setTo()
+{
+	Mat src = imread("lenna.tif");
+	Mat mask = imread("mask_smile.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src) || isEmpty(mask))
+		return;
+
+	src.setTo(Scalar(0, 0, 0), mask);
+
+	imshow("src", src);
+	imshow("mask", mask);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void mask_copyTo()
+{
+	Mat src = imread("airplane.bmp");
+	Mat mask = imread("mask_plane.bmp", IMREAD_GRAYSCALE);
+	Mat dst = imread("field.bmp", IMREAD_COLOR);
+
+	if (isEmpty(src) | isEmpty(mask) | isEmpty(dst))
+		return;
+
+	src.copyTo(dst, mask);
+
+	imshow("dst", dst);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void time_copyTo()
+{
+	TickMeter tm;
+	tm.start();
+	Mat src = imread("airplane.bmp");
+	Mat mask = imread("mask_plane.bmp", IMREAD_GRAYSCALE);
+	Mat dst = imread("field.bmp", IMREAD_COLOR);
+
+	if (isEmpty(src) | isEmpty(mask) | isEmpty(dst))
+		return;
+
+	src.copyTo(dst, mask);
+	tm.stop();
+	std::cout << " Image Copy To Dst " << tm.getTimeMilli() << "ms. \n";
+	imshow("dst", dst);
+	waitKey();
+	destroyAllWindows();
+}
+
+void util()
+{
+	Mat img = imread("Lenna.bmp", IMREAD_GRAYSCALE);
+
+	std::cout << "Sum: " << sum(img) << "\n";
+	std::cout << "Avg: " << mean(img) << "\n";
+
+	double minVal, maxVal;
+	Point minPos, maxPos;
+	minMaxLoc(img, &minVal, &maxVal, &minPos, &maxPos);
+
+	std::cout << "minVal: " << minVal << " at " << minPos << "\n";
+	std::cout << "maxVal: " << maxVal << " at " << maxPos << "\n";
+
+	Mat src = (Mat_<float>(1, 5) << -1.f, -0.5f, 0.f, 0.5f, 1.f);
+
+	Mat dst;
+	normalize(src, dst, 0, 255, NORM_MINMAX, CV_8UC1);
+
+	std::cout << "src: " << src << "\n";
+	std::cout << "dst: " << dst << "\n";
+
+	std::cout << "cvRound(2.5): " << cvRound(2.5) << "\n";
+	std::cout << "cvRound(2.51): " << cvRound(2.51) << "\n";
+	std::cout << "cvRound(3.4999): " << cvRound(3.4999) << "\n";
+	std::cout << "cvRound(3.5): " << cvRound(3.5) << "\n";
+}

@@ -35,4 +35,16 @@ void mask_setTo();
 void mask_copyTo();
 void time_copyTo();
 void util();
+void brightness_1();
+void brightness_2();
+void brightness_3();
+void brightness_trackbar();
+void contrast_1();
+void contrast_2();
+void GrayHistImage();
+Mat calcGrayHist(const Mat& img);
+Mat calcGrayHistImage(const Mat& hist);
+void compareHist();
+void histogram_stretching();
+void histogram_equalization();
 #endif

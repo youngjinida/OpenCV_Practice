@@ -672,3 +672,241 @@ void util()
 	std::cout << "cvRound(3.4999): " << cvRound(3.4999) << "\n";
 	std::cout << "cvRound(3.5): " << cvRound(3.5) << "\n";
 }
+
+void brightness_1()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+	if (isEmpty(src))
+		return;
+
+	Mat dst = src + 100;
+
+	imshow("src", src);
+	imshow("dst", dst);
+	waitKey();
+
+	destroyAllWindows();
+}
+
+void brightness_2()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+	if (isEmpty(src))
+		return;
+	
+	Mat dst(src.rows, src.cols, src.type());
+	for (int i = 0; i < src.rows; ++i)
+	{
+		for (int j = 0; j < src.cols; ++j)
+		{
+			if (src.at<uchar>(i, j) > 155)
+				dst.at<uchar>(i, j) = 255;
+			else
+				dst.at<uchar>(i, j) = src.at<uchar>(i, j) + 100;
+		}
+	}
+
+	imshow("src", src);
+	imshow("dst", dst);
+	waitKey();
+
+	destroyAllWindows();
+}
+
+void brightness_3()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+	if (isEmpty(src))
+		return;
+
+	Mat dst(src.rows, src.cols, src.type());
+	for (int i = 0; i < src.rows; ++i)
+		for (int j = 0; j < src.cols; ++j)
+			dst.at<uchar>(i, j) = saturate_cast<uchar>(src.at<uchar>(i, j) + 100);
+	
+
+	imshow("src", src);
+	imshow("dst", dst);
+	waitKey();
+
+	destroyAllWindows();
+}
+
+void on_brightness(int pos, void* userdata)
+{
+	Mat dst = (* (Mat*)userdata) + pos;
+	imshow("dst", dst);
+}
+
+void brightness_trackbar()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	namedWindow("dst");
+	createTrackbar("Brightness", "dst", 0, 100, on_brightness, (void*)&src);
+	on_brightness(0, (void*)&src);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void contrast_1()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	namedWindow("dst");
+
+	Mat dst = src * 2.f;
+	imshow("src", src);
+	imshow("dst", dst);
+	waitKey();
+	destroyAllWindows();
+}
+
+void contrast_2()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	namedWindow("dst");
+
+	float a = 1.f;
+	Mat dst = src + (src - 128) * a;
+
+	imshow("src", src);
+	imshow("dst", dst);
+	waitKey();
+	destroyAllWindows();
+}
+
+void GrayHistImage()
+{
+	Mat img = imread("lenna.bmp", IMREAD_GRAYSCALE);
+	CV_Assert(img.type() == CV_8UC1);
+
+	Mat hist;
+	int channel[] = { 0 };
+	int dims = 1;
+	const int histSize[] = { 256 };
+	float grayLevel[] = { 0, 256 };
+	const float* ranges[] = { grayLevel };
+
+	calcHist(&img, 1, channel, noArray(), hist, dims, histSize, ranges);
+
+	CV_Assert(hist.type() == CV_32FC1);
+	CV_Assert(hist.size() == Size(1, 256));
+
+	double histMax;
+	minMaxLoc(hist, 0, &histMax);
+
+	Mat imageHist(100, 256, CV_8UC1, Scalar(255));
+	
+	for (int i = 0; i < 256; ++i)
+		line(imageHist, Point(i, 100), Point(i, 100 - cvRound(hist.at<float>(i, 0) * 100 / histMax)), Scalar(0));
+
+	imshow("histogram", imageHist);
+	waitKey();
+
+	destroyAllWindows();
+}
+
+Mat calcGrayHist(const Mat& img)
+{
+	CV_Assert(img.type() == CV_8UC1);
+	Mat hist;
+	int channel[] = { 0 };
+	int dims = 1;
+	const int histSize[] = { 256 };
+	float grayLevel[] = { 0, 256 };
+	const float* ranges[] = { grayLevel };
+
+	calcHist(&img, 1, channel, noArray(), hist, dims, histSize, ranges);
+
+	return hist;
+}
+
+Mat calcGrayHistImage(const Mat& hist)
+{
+	CV_Assert(hist.type() == CV_32FC1);
+	CV_Assert(hist.size() == Size(1, 256));
+
+	double histMax;
+	minMaxLoc(hist, 0, &histMax);
+
+	Mat imageHist(100, 256, CV_8UC1, Scalar(255));
+
+	for (int i = 0; i < 256; ++i)
+		line(imageHist, Point(i, 100), Point(i, 100 - cvRound(hist.at<float>(i, 0) * 100 / histMax)), Scalar(0));
+
+	return imageHist;
+}
+
+void compareHist()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	float a = 0.2f;
+	Mat dst_1 = src + (src - 128) * a;
+	float b = 0.6f;
+	Mat dst_2 = src * b + 50;
+
+	imshow("src", calcGrayHistImage(calcGrayHist(src)));
+	imshow("dst1", calcGrayHistImage(calcGrayHist(dst_1)));
+	imshow("dst2", calcGrayHistImage(calcGrayHist(dst_2)));
+	waitKey();
+	destroyAllWindows();
+}
+
+void histogram_stretching()
+{
+	Mat src = imread("hawkes.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	double gmin, gmax;
+	minMaxLoc(src, &gmin, &gmax);
+
+	Mat dst = (src - gmin) / (gmax - gmin) * 255;
+
+	imshow("src", src);
+	Mat hist_src = calcGrayHistImage(calcGrayHist(src));
+	imshow("hist_src", hist_src);
+	imshow("dst", dst);
+	Mat hist_dst = calcGrayHistImage(calcGrayHist(dst));
+	imshow("hist_dst", hist_dst);
+	waitKey();
+	destroyAllWindows();
+}
+
+void histogram_equalization()
+{
+	Mat src = imread("hawkes.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	Mat dst;
+	equalizeHist(src, dst);
+
+	imshow("src", src);
+	Mat hist_src = calcGrayHistImage(calcGrayHist(src));
+	imshow("hist_src", hist_src);
+	imshow("dst", dst);
+	Mat hist_dst = calcGrayHistImage(calcGrayHist(dst));
+	imshow("hist_dst", hist_dst);
+	
+	waitKey();
+	destroyAllWindows();
+}

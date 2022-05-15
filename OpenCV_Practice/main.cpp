@@ -6,5 +6,5 @@ using namespace cv;
 
 int main()
 {
-	util();
+	histogram_equalization();
 }

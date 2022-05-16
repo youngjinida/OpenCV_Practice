@@ -47,4 +47,9 @@ Mat calcGrayHistImage(const Mat& hist);
 void compareHist();
 void histogram_stretching();
 void histogram_equalization();
+void arithmetic();
+void logical();
+void filter_embossing();
+void blurring_mean();
+void blurring_gaussian();
 #endif

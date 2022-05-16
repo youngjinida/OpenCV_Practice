@@ -910,3 +910,127 @@ void histogram_equalization()
 	waitKey();
 	destroyAllWindows();
 }
+
+void arithmetic()
+{
+	Mat src1 = imread("lenna256.bmp", IMREAD_GRAYSCALE);
+	Mat src2 = imread("square.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src1) || isEmpty(src2))
+		return;
+
+	imshow("src1", src1);
+	imshow("src2", src2);
+
+	Mat dst1, dst2, dst3, dst4;
+
+	add(src1, src2, dst1);
+	addWeighted(src1, 0.5, src2, 0.5, 0, dst2);
+	subtract(src1, src2, dst3);
+	absdiff(src1, src2, dst4);
+
+	imshow("dst1", dst1);
+	imshow("dst2", dst2);
+	imshow("dst3", dst3);
+	imshow("dst4", dst4);
+	waitKey();
+
+	destroyAllWindows();
+}
+
+void logical()
+{
+	Mat src1 = imread("lenna256.bmp", IMREAD_GRAYSCALE);
+	Mat src2 = imread("square.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src1) || isEmpty(src2))
+		return;
+
+	imshow("src1", src1);
+	imshow("src2", src2);
+
+	Mat dst1, dst2, dst3, dst4;
+	bitwise_and(src1, src2, dst1);
+	bitwise_or(src1, src2, dst2);
+	bitwise_xor(src1, src2, dst3);
+	bitwise_not(src1, dst4);
+
+	imshow("dst1", dst1);
+	imshow("dst2", dst2);
+	imshow("dst3", dst3);
+	imshow("dst4", dst4);
+	waitKey();
+
+	destroyAllWindows();
+}
+
+void filter_embossing()
+{
+	Mat src = imread("rose.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	float data[] = { -1,-1,0, -1, 0,1,0,1,1 };
+	Mat emboss(3, 3, CV_32FC1, data);
+
+	Mat dst;
+
+	filter2D(src, dst, -1, emboss, Point(-1, -1), 128);
+
+	imshow("src", src);
+	imshow("dst", dst);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void blurring_mean()
+{
+	Mat src = imread("rose.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	imshow("src", src);
+
+	Mat dst;
+
+	for (int size = 3; size <= 7; size += 2)
+	{
+		blur(src, dst, Size(size, size));
+		String desc = format("Mean: %dx%d", size, size);
+		putText(dst, desc, Point(10, 30), FONT_HERSHEY_COMPLEX, 1.0, Scalar(255), 1, LINE_AA);
+
+		imshow("dst", dst);
+		waitKey();
+	}
+	destroyAllWindows();
+}
+
+void blurring_gaussian()
+{
+	Mat src = imread("rose.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	imshow("src", src);
+
+	Mat dst;
+
+	for (int sigma = 1; sigma <= 5; ++sigma)
+	{
+		GaussianBlur(src, dst, Size(), (double)sigma);
+		String desc = format("Sigma: %d", sigma);
+		putText(dst, desc, Point(10, 30), FONT_HERSHEY_COMPLEX, 1.0, Scalar(255), 1, LINE_AA);
+
+		imshow("dst", dst);
+		waitKey();
+	}
+	destroyAllWindows();
+}
+
+
+
+

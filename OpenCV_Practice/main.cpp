@@ -6,5 +6,5 @@ using namespace cv;
 
 int main()
 {
-	std::cout << getGaussianKernel(9, 1) << "\n";
+	perspective();
 }

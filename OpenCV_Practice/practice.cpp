@@ -1031,6 +1031,311 @@ void blurring_gaussian()
 	destroyAllWindows();
 }
 
+void unsharp_mask()
+{
+	Mat src = imread("rose.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	imshow("src", src);
+	
+	for (int sigma = 1; sigma <= 5; ++sigma)
+	{
+		Mat blur;
+		GaussianBlur(src, blur, Size(), sigma);
+		float alpha = 1.f;
+
+		Mat dst = (1.f + alpha) * src - alpha * blur;
+
+		String desc = format("sigma: %d", sigma);
+
+		putText(dst, desc, Point(10, 30), FONT_HERSHEY_COMPLEX, 1.0, Scalar(255), 1, LINE_AA);
+
+		imshow("dst", dst);
+		waitKey();
+	}
+	destroyAllWindows();
+}
+
+void noise_gaussian()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	imshow("src", src);
+	
+	for (int std = 0; std <= 30; std += 1)
+	{
+		Mat noise(src.size(), CV_32SC1);
+		randn(noise, 0, std);
+
+		Mat dst;
+		add(src, noise, dst, Mat(), CV_8U);
+
+		String desc = format("std: %d", std);
+
+		putText(dst, desc, Point(10, 30), FONT_HERSHEY_COMPLEX, 1.0, Scalar(255), 1, LINE_AA);
+
+		imshow("dst", dst);
+		waitKey();
+	}
+	destroyAllWindows();
+}
+
+void filter_bilateral()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	Mat noise(src.size(), CV_32SC1);
+	randn(noise, 0, 3);
+	add(src, noise, src, Mat(), CV_8U);
+
+	Mat dst;
+	GaussianBlur(src, dst, Size(), 3);
+
+	Mat dst2;
+	bilateralFilter(src, dst2, -1, 10, 3);
+
+	imshow("src", src);
+	imshow("dst", dst);
+	imshow("dst2", dst2);
+	waitKey();
+
+	destroyAllWindows();
+}
+
+void filter_median()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	int num = (int)(src.total() * 0.1);
+	for (int i = 0; i < num; ++i)
+	{
+		int x = rand() % src.cols;
+		int y = rand() % src.rows;
+		src.at<uchar>(x, y) = (i & 1) ? 0 : 255;
+	}
+
+	Mat dst;
+	GaussianBlur(src, dst, Size(), 1);
+
+	Mat dst2;
+	medianBlur(src, dst2, 3);
+
+	imshow("src", src);
+	imshow("dst", dst);
+	imshow("dst2", dst2);
+	waitKey();
+
+	destroyAllWindows();
+}
+
+void affine_transform()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	Point2f srcPts[3], dstPts[3];
+	srcPts[0] = Point2f(0, 0);
+	srcPts[1] = Point2f(src.cols-1.0, 0);
+	srcPts[2] = Point2f(src.cols - 1.0, src.rows - 1.0);
+	
+	dstPts[0] = Point2f(10, 10);
+	dstPts[1] = Point2f(src.cols - 20, 20);
+	dstPts[2] = Point2f(src.cols - 10, src.rows - 10);
+
+	Mat M = getAffineTransform(srcPts, dstPts);
+
+	Mat dst;
+	warpAffine(src, dst, M, Size());
+
+	imshow("src", src);
+	imshow("dst", dst);
+
+	waitKey();
+
+	destroyAllWindows();
+}
+
+void affine_translation()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	Mat M = Mat_<double>({ 2, 3 }, { 1, 0, 150, 0, 1, 100 });
 
 
+	Mat dst;
+	warpAffine(src, dst, M, Size());
 
+	imshow("src", src);
+	imshow("dst", dst);
+
+	waitKey();
+
+	destroyAllWindows();
+}
+
+void affine_shear()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	double mx=0.1, my=0.1;
+	Mat M = Mat_<double>({ 2, 3 }, { 1, mx, 0, 0, 1, 0 });
+
+
+	Mat dst;
+	warpAffine(src, dst, M, Size(src.cols + src.rows * mx, src.rows));
+
+	Mat M2 = Mat_<double>({ 2, 3 }, { 1, 0, 0, my, 1, 0 });
+
+
+	Mat dst2;
+	warpAffine(src, dst2, M2, Size(src.cols, src.rows + src.cols * my));
+
+	imshow("src", src);
+	imshow("dst", dst);
+	imshow("dst2", dst2);
+
+	waitKey();
+
+	destroyAllWindows();
+}
+
+
+void affine_scale()
+{
+	Mat src = imread("rose.bmp");
+
+	if (isEmpty(src))
+		return;
+	Mat dst, dst2, dst3, dst4;
+
+	resize(src, dst, Size(), 4, 4, INTER_NEAREST);
+	resize(src, dst2, Size(1920, 1280));
+	resize(src, dst3, Size(1920, 1280), 0, 0, INTER_CUBIC);
+	resize(src, dst4, Size(1920, 1280), 0, 0, INTER_LANCZOS4);
+
+	imshow("src", src);
+	imshow("dst1", dst(Rect(400, 500, 400, 400)));
+	imshow("dst2", dst2(Rect(400, 500, 400, 400)));
+	imshow("dst3", dst3(Rect(400, 500, 400, 400)));
+	imshow("dst4", dst4(Rect(400, 500, 400, 400)));
+
+	waitKey();
+
+	destroyAllWindows();
+}
+
+void affine_rotation()
+{
+	Mat src = imread("rose.bmp");
+
+	if (isEmpty(src))
+		return;
+	Mat dst;
+	Point2f cp(src.cols, src.rows);
+	Mat M = getRotationMatrix2D(cp, 20, 1);
+
+	warpAffine(src, dst, M, Size());
+	imshow("src", src);
+	imshow("dst", dst);
+
+	waitKey();
+
+	destroyAllWindows();
+}
+
+
+void affine_flip()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	Mat dst, dst2;
+	int flipCode[] = { 1 , 0 ,-1 };
+	Mat M2[] = {
+		Mat_<double>({ 2, 3 }, { -1, 0, (double)src.cols - 1, 0, 1 , 0 }),
+		Mat_<double>({ 2, 3 }, { 1, 0, 0, 0, -1, (double)src.rows - 1 }),
+		Mat_<double>({ 2, 3 }, { -1, 0, (double)src.cols - 1, 0, -1, (double)src.rows - 1 }) };
+	imshow("src", src);
+	for (int i = 0; i < 3; ++i)
+	{
+		flip(src, dst, flipCode[i]);
+		warpAffine(src, dst2, M2[i], Size());
+		String desc = format("flipcode: %d", flipCode[i]);
+		putText(dst, desc, Point(10, 30), FONT_HERSHEY_COMPLEX, 1, Scalar(255), 1, LINE_AA);
+		putText(dst2, desc, Point(10, 30), FONT_HERSHEY_COMPLEX, 1, Scalar(255), 1, LINE_AA);
+		
+		imshow("dst", dst);
+		imshow("dst2", dst2);
+		waitKey();
+	}
+
+	destroyAllWindows();
+}
+
+Mat perspective_src;
+Point2f srcQuad[4], dstQuad[4];
+void on_mouse(int evt, int x, int y, int flag, void* userdata)
+{
+	static int cnt = 0;
+
+	if (evt == EVENT_LBUTTONDOWN)
+	{
+		if (cnt < 4)
+		{
+			srcQuad[cnt++] = Point2f(x, y);
+
+			circle(perspective_src, Point(x, y), 5, Scalar(255, 0, 0), -1);
+			imshow("src", perspective_src);
+			if (cnt == 4)
+			{
+				int w = 200, h = 300;
+				dstQuad[0] = Point2f(0, 0);
+				dstQuad[1] = Point2f(w-1, 0);
+				dstQuad[2] = Point2f(w-1, h-1);
+				dstQuad[3] = Point2f(0, h-1);
+
+				Mat pers = getPerspectiveTransform(srcQuad, dstQuad);
+
+				Mat dst;
+				warpPerspective(perspective_src, dst, pers, Size(w, h));
+
+				imshow("dst", dst);
+			}
+		}
+	}
+}
+
+void perspective()
+{
+	perspective_src = imread("card.bmp");
+
+	if (isEmpty(perspective_src))
+		return;
+
+	namedWindow("src");
+	setMouseCallback("src", on_mouse);
+
+	imshow("src", perspective_src);
+	waitKey();
+}

@@ -52,4 +52,15 @@ void logical();
 void filter_embossing();
 void blurring_mean();
 void blurring_gaussian();
+void unsharp_mask();
+void noise_gaussian();
+void filter_bilateral();
+void filter_median();
+void affine_transform();
+void affine_translation();
+void affine_shear();
+void affine_scale();
+void affine_rotation();
+void affine_flip();
+void perspective();
 #endif

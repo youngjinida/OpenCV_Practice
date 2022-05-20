@@ -1339,3 +1339,325 @@ void perspective()
 	imshow("src", perspective_src);
 	waitKey();
 }
+
+void sobel_derivate()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	Mat mx = Mat_<float>({ 1, 3 }, { -1, 0 ,1 });
+	Mat my = Mat_<float>({ 3, 1 }, { -1, 0 ,1 });
+
+	Mat dx, dy;
+
+	filter2D(src, dx, -1, mx, Point(-1, -1), 128);
+	filter2D(src, dy, -1, my, Point(-1, -1), 128);
+
+	imshow("src", src);
+	imshow("dx", dx);
+	imshow("dy", dy);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void sobel_edge()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	Mat dx, dy;
+	Sobel(src, dx, CV_32FC1, 1, 0);
+	Sobel(src, dy, CV_32FC1, 0, 1);
+
+	Mat fmag, mag;
+
+	magnitude(dx, dy, fmag);
+	fmag.convertTo(mag, CV_8UC1);
+
+	Mat edge = mag > 120;
+
+	imshow("src", src);
+	imshow("mag", mag);
+	imshow("edge", edge);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void canny_edge()
+{
+	Mat src = imread("lenna.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	Mat dst, dst2;
+
+	Canny(src, dst, 50, 100);
+	Canny(src, dst2, 50, 150);
+
+	imshow("src", src);
+	imshow("dst1", dst);
+	imshow("dst2", dst2);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void hough_lines()
+{
+	Mat src = imread("building.jpg", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+	
+	Mat edge;
+	Canny(src, edge, 50, 150);
+
+	std::vector<Vec2f> lines;
+	HoughLines(edge, lines, 1, CV_PI / 180, 250);
+
+	Mat dst;
+	cvtColor(edge, dst, COLOR_GRAY2BGR);
+
+	for (size_t i = 0; i < lines.size(); ++i)
+	{
+		float r = lines[i][0], t = lines[i][1];
+		double cos_t = cos(t), sin_t = sin(t);
+		double x0 = r * cos_t, y0 = r * sin_t;
+		double alpha = 1000;
+
+		Point pt1(cvRound(x0 + alpha * (-sin_t)), cvRound(y0 + alpha * cos_t));
+		Point pt2(cvRound(x0 - alpha * (-sin_t)), cvRound(y0 - alpha * cos_t));
+
+		line(dst, pt1, pt2, Scalar(0, 0, 255), 2, LINE_AA);
+	}
+
+	imshow("src", src);
+	imshow("dst", dst);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void hough_lines_segment()
+{
+	Mat src = imread("building.jpg", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	Mat edge;
+	Canny(src, edge, 50, 150);
+
+	std::vector<Vec4i> lines;
+	HoughLinesP(edge, lines, 1, CV_PI / 180, 160, 50, 5);
+
+	Mat dst;
+	cvtColor(edge, dst, COLOR_GRAY2BGR);
+
+	for (Vec4i l : lines)
+	{
+		line(dst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 2, LINE_AA);
+	}
+
+	imshow("src", src);
+	imshow("dst", dst);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void hough_circle()
+{
+	Mat src = imread("coins.png", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+
+	Mat blurred;
+	blur(src, blurred, Size(3, 3));
+
+	std::vector<Vec3f> circles;
+	HoughCircles(blurred, circles, HOUGH_GRADIENT, 1, 50, 150, 30);
+
+	Mat dst;
+	cvtColor(src, dst, COLOR_GRAY2BGR);
+
+	for (Vec3i c : circles)
+	{
+		Point center(cvRound(c[0]), cvRound(c[1]));
+		int radius = cvRound(c[2]);
+		circle(dst, center, radius, Scalar(0, 0, 255), 1, LINE_AA);
+	}
+
+	imshow("src", src);
+	imshow("dst", dst);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void color_inverse()
+{
+	Mat src = imread("butterfly.jpg", IMREAD_COLOR);
+	if (isEmpty(src))
+		return;
+	
+	Mat dst(src.rows, src.cols, src.type());
+	Mat dst2(src.rows, src.cols, src.type());
+
+	for (int i = 0; i < src.rows; ++i)
+	{
+		for (int j = 0; j < src.cols; ++j)
+		{
+			Vec3b& p1 = src.at<Vec3b>(i, j);
+			Vec3b& p2 = dst.at<Vec3b>(i, j);
+
+			p2[0] = 255 - p1[0];
+			p2[1] = 255 - p1[1];
+			p2[2] = 255 - p1[2];
+		}
+	}
+	MatIterator_<Vec3b> iter;
+	MatIterator_<Vec3b> iter2 = dst2.begin<Vec3b>();
+	for (iter = src.begin<Vec3b>(); iter != src.end<Vec3b>(); iter++)
+	{
+		(*iter2) = Vec3b(255, 255, 255) - (*iter);
+		iter2++;
+	}
+
+	imshow("src", src);
+	imshow("dst", dst);
+	imshow("dst2", dst2);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void color_split()
+{
+	Mat src = imread("candies.png");
+
+	if (isEmpty(src))
+		return;
+	
+	std::vector<Mat> v;
+	split(src, v);
+	imshow("src", src);
+	imshow("B_plane", v[0]);
+	imshow("G_plane", v[1]);
+	imshow("R_plane", v[2]);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void color_eq()
+{
+	Mat src = imread("pepper.bmp", IMREAD_COLOR);
+
+	if (isEmpty(src))
+		return;
+
+	Mat src_ycbcr;
+	cvtColor(src, src_ycbcr, COLOR_BGR2YCrCb);
+
+	std::vector<Mat> ycrcb_plane;
+	split(src_ycbcr, ycrcb_plane);
+
+	equalizeHist(ycrcb_plane[0], ycrcb_plane[0]);
+
+	Mat dst, dst2;
+
+	merge(ycrcb_plane, dst);
+	cvtColor(dst, dst2, COLOR_YCrCb2BGR);
+	
+	imshow("src", src);
+	imshow("dst", dst2);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+Mat range_src, range_src_hsv, mask;
+int lower_hue = 40, upper_hue = 80;
+void on_hue_changed(int, void* userdata)
+{
+	Scalar lowerb(lower_hue, 100, 0);
+	Scalar upperb(upper_hue, 255, 255);
+	inRange(range_src_hsv, lowerb, upperb, mask);
+	imshow("mask", mask);
+}
+
+void range_extraction()
+{
+	range_src = imread("candies.png", IMREAD_COLOR);
+
+	if (isEmpty(range_src))
+		return;
+
+	imshow("src", range_src);
+	cvtColor(range_src, range_src_hsv, COLOR_BGR2HSV);
+
+	namedWindow("mask");
+	createTrackbar("LowerHue", "mask", &lower_hue, 179, on_hue_changed);
+	createTrackbar("UpperHue", "mask", &upper_hue, 179, on_hue_changed);
+	on_hue_changed(0, 0);
+
+	waitKey();
+}
+
+void backproject()
+{
+	Mat ref, ref_ycrcb, mask;
+	ref = imread("ref.png", IMREAD_COLOR);
+	mask = imread("mask.bmp", IMREAD_GRAYSCALE);
+	cvtColor(ref, ref_ycrcb, COLOR_BGR2YCrCb);
+
+	Mat hist;
+	int channels[] = { 1, 2 };
+	int cr_bins = 128; int cb_bins = 128;
+	int histSize[] = { cr_bins, cb_bins };
+	float cr_range[] = { 0, 256 };
+	float cb_range[] = { 0, 256 };
+	const float* ranges[] = { cr_range, cb_range };
+
+
+	calcHist(&ref_ycrcb, 1, channels, mask, hist, 2, histSize, ranges);
+
+	Mat src, src_ycrcb;
+	src = imread("kids.png", IMREAD_COLOR);
+	cvtColor(src, src_ycrcb, COLOR_BGR2YCrCb);
+
+	Mat backproj;
+	calcBackProject(&src_ycrcb, 1, channels, hist, backproj, ranges, 1, true);
+
+	imshow("src", src);
+	imshow("backproj", backproj);
+	imshow("hist", hist);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -63,4 +63,15 @@ void affine_scale();
 void affine_rotation();
 void affine_flip();
 void perspective();
+void sobel_derivate();
+void sobel_edge();
+void canny_edge();
+void hough_lines();
+void hough_lines_segment();
+void hough_circle();
+void color_inverse();
+void color_split();
+void color_eq();
+void range_extraction();
+void backproject();
 #endif

@@ -6,5 +6,5 @@ using namespace cv;
 
 int main()
 {
-	backproject();
+	labeling_basic();
 }

@@ -1646,13 +1646,130 @@ void backproject()
 	destroyAllWindows();
 }
 
+void on_threshold(int pos, void* userdata)
+{
+	Mat src = *(Mat*)userdata;
 
+	Mat dst;
+	threshold(src, dst, pos, 255, THRESH_BINARY);
+	imshow("dst", dst);
+}
 
+void threshold()
+{
+	Mat src;
+	
+	src = imread("neutrophils.png", IMREAD_GRAYSCALE);
+	if (isEmpty(src))
+		return;
 
+	imshow("src", src);
 
+	namedWindow("dst");
+	createTrackbar("Threshold", "dst", 0, 255, on_threshold, (void*)&src);
+	setTrackbarPos("Threshold", "dst", 128);
+	waitKey();
+	destroyAllWindows();
+}
 
+void on_ada_threshold(int pos, void* userdata)
+{
+	Mat src = *(Mat*)userdata;
 
+	Mat dst;
+	int bsize = pos;
+	if (bsize < 3)
+		bsize = 3;
+	if (!(bsize & 1))
+		--bsize;
 
+	adaptiveThreshold(src, dst, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, bsize, 5);
+	imshow("dst", dst);
+}
+
+void adaptive_threshold()
+{
+	Mat src;
+
+	src = imread("sudoku.jpg", IMREAD_GRAYSCALE);
+	if (isEmpty(src))
+		return;
+
+	imshow("src", src);
+
+	namedWindow("dst");
+	createTrackbar("Threshold", "dst", 0, 200, on_ada_threshold, (void*)&src);
+	setTrackbarPos("Threshold", "dst", 11);
+	waitKey();
+	destroyAllWindows();
+}
+
+void erode_dilate()
+{
+	Mat src = imread("milkdrop.bmp", IMREAD_GRAYSCALE);
+	
+	if (isEmpty(src))
+		return;
+	Mat bin;
+	threshold(src, bin, 0, 255, THRESH_BINARY | THRESH_OTSU);
+
+	Mat dst, dst2;
+	erode(bin, dst, Mat());
+	dilate(bin, dst2, Mat());
+
+	imshow("src", src);
+	imshow("bin", bin);
+	imshow("dst", dst);
+	imshow("dst2", dst2);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void open_close()
+{
+	Mat src = imread("milkdrop.bmp", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src))
+		return;
+	Mat bin;
+	threshold(src, bin, 0, 255, THRESH_BINARY | THRESH_OTSU);
+
+	Mat dst, dst2;
+	morphologyEx(bin, dst, MORPH_OPEN, Mat());
+	morphologyEx(bin, dst2, MORPH_CLOSE, Mat());
+
+	imshow("src", src);
+	imshow("bin", bin);
+	imshow("dst", dst);
+	imshow("dst2", dst2);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void labeling_basic()
+{
+	uchar data[] = {
+		0, 0, 1, 1, 0, 0, 0, 0,
+		1, 1, 1, 1, 0, 0, 1, 0,
+		1, 1, 1, 1, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 1, 1, 0,
+		0, 0, 0, 1, 1, 1, 1, 0,
+		0, 0, 0, 1, 0, 0, 1, 0,
+		0, 0, 1, 1, 1, 1, 1, 0,
+		0, 0, 0, 0, 0, 0, 0, 0
+	};
+
+	Mat src = Mat(8, 8, CV_8UC1, data) * 255;
+
+	Mat labels;
+	int cnt = connectedComponents(src, labels);
+
+	std::cout << "src: \n" << src << "\n";
+	std::cout << "labels: \n" << labels << "\n";
+	std::cout << "number of cnt: \n" << cnt << "\n";
+}
 
 
 

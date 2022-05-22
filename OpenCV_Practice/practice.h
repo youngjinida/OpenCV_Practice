@@ -74,4 +74,11 @@ void color_split();
 void color_eq();
 void range_extraction();
 void backproject();
+void on_threshold(int pos, void* userdata);
+void threshold();
+void on_ada_threshold(int pos, void* userdata);
+void adaptive_threshold();
+void erode_dilate();
+void open_close();
+void labeling_basic();
 #endif

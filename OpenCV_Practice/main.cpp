@@ -6,5 +6,5 @@ using namespace cv;
 
 int main()
 {
-	labeling_basic();
+	label_grigi();
 }

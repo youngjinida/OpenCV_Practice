@@ -81,4 +81,9 @@ void adaptive_threshold();
 void erode_dilate();
 void open_close();
 void labeling_basic();
+void labeling_stats();
+void contour_basic();
+void contours_hier();
+void setLabel(Mat& img, const std::vector<Point>& pts, const String& label);
+void label_grigi();
 #endif

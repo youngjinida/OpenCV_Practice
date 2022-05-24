@@ -6,5 +6,5 @@ using namespace cv;
 
 int main()
 {
-	label_grigi();
+	detect_face();
 }

@@ -6,5 +6,5 @@ using namespace cv;
 
 int main()
 {
-	detect_face();
+	hog();
 }

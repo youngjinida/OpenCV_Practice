@@ -88,4 +88,6 @@ void setLabel(Mat& img, const std::vector<Point>& pts, const String& label);
 void label_grigi();
 void template_matching();
 void detect_face();
+void detect_eye();
+void hog();
 #endif

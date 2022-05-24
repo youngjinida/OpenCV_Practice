@@ -1978,9 +1978,73 @@ void detect_eye()
 		return;
 
 	CascadeClassifier classifier("haarcascade_frontalface_default.xml");
+	CascadeClassifier eye_classifier("haarcascade_eye.xml");
+
+	if (classifier.empty() | eye_classifier.empty())
+	{
+		std::cerr << "Xml load failed\n";
+		return;
+	}
+
+	std::vector<Rect> faces;
+	classifier.detectMultiScale(src, faces);
+	for (Rect rc : faces)
+	{
+		rectangle(src, rc, Scalar(0, 0, 255), 2);
+
+		Mat faceROI = src(rc);
+		std::vector<Rect> eyes;
+		eye_classifier.detectMultiScale(faceROI, eyes);
+		for (Rect eye : eyes)
+		{
+			Point center(eye.x + eye.width / 2, eye.y + eye.height / 2);
+			circle(faceROI, center, eye.width / 2, Scalar(0, 255, 0), 2);
+		}
+	}
+
+	imshow("src", src);
+	waitKey();
+	destroyAllWindows();
 }
 
+void hog()
+{
+	VideoCapture cap("vtest.avi");
 
+	if (!cap.isOpened())
+	{
+		std::cerr << "Video open failed!\n";
+		return;
+	}
+
+	HOGDescriptor hog;
+	hog.setSVMDetector(hog.getDefaultPeopleDetector());
+
+	Mat frame;
+	while (true)
+	{
+		cap >> frame;
+		if (frame.empty())
+			break;
+
+		std::vector<Rect> detected;
+		hog.detectMultiScale(frame, detected);
+
+		for (Rect r : detected)
+		{
+			Scalar c = Scalar(rand() & 255, rand() & 255, rand() & 255);
+			rectangle(frame, r, c, 1);
+		}
+
+		imshow("frame", frame);
+		if (waitKey(10) == 27)
+			break;
+	}
+}
+void decode_qrcode()
+{
+
+}
 
 
 

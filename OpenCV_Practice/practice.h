@@ -90,4 +90,7 @@ void template_matching();
 void detect_face();
 void detect_eye();
 void hog();
+void harris_corner();
+void fast_corner();
+void detect_keypoints();
 #endif

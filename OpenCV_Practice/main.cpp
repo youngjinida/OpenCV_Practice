@@ -6,5 +6,5 @@ using namespace cv;
 
 int main()
 {
-	hog();
+	detect_keypoints();
 }

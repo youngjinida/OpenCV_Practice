@@ -5,6 +5,9 @@
 #include <iostream>
 
 using namespace cv;
+using namespace cv::ml;
+using namespace std;
+
 
 void practice_1();
 void practice_2();
@@ -93,4 +96,12 @@ void hog();
 void harris_corner();
 void fast_corner();
 void detect_keypoints();
+void keypoint_matching();
+void good_matching();
+void find_homography();
+void stitch_img();
+void on_k_change(int, void*);
+void addPoint(const Point& pt, int cls);
+void trainAndDisplay();
+void knn_practice();
 #endif

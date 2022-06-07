@@ -2140,15 +2140,252 @@ void detect_keypoints()
 	destroyAllWindows();
 }
 
+void keypoint_matching()
+{
+	Mat src1 = imread("box.png", IMREAD_GRAYSCALE);
+	Mat src2 = imread("box_in_scene.png", IMREAD_GRAYSCALE);
 
+	if (isEmpty(src1) || isEmpty(src2))
+		return;
 
+	Ptr<Feature2D> feature = ORB::create();
 
+	std::vector<KeyPoint> keypoint1, keypoint2;
+	Mat desc1, desc2;
 
+	feature->detectAndCompute(src1, Mat(), keypoint1, desc1);
+	feature->detectAndCompute(src2, Mat(), keypoint2, desc2);
 
+	Ptr<DescriptorMatcher> matcher = BFMatcher::create(NORM_HAMMING);
 
+	std::vector<DMatch> matches;
+	matcher->match(desc1, desc2, matches);
 
+	Mat dst;
+	drawMatches(src1, keypoint1, src2, keypoint2, matches, dst);
 
+	imshow("dst", dst);
+	
+	waitKey();
+	destroyAllWindows();
+}
 
+void good_matching()
+{
+	Mat src1 = imread("box.png", IMREAD_GRAYSCALE);
+	Mat src2 = imread("box_in_scene.png", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src1) || isEmpty(src2))
+		return;
+
+	Ptr<Feature2D> feature = ORB::create();
+
+	std::vector<KeyPoint> keypoint1, keypoint2;
+	Mat desc1, desc2;
+
+	feature->detectAndCompute(src1, Mat(), keypoint1, desc1);
+	feature->detectAndCompute(src2, Mat(), keypoint2, desc2);
+
+	Ptr<DescriptorMatcher> matcher = BFMatcher::create(NORM_HAMMING);
+
+	std::vector<DMatch> matches;
+	matcher->match(desc1, desc2, matches);
+
+	std::sort(matches.begin(), matches.end());
+	std::vector<DMatch> good_matches(matches.begin(), matches.begin() + 50);
+
+	Mat dst;
+	drawMatches(src1, keypoint1, src2, keypoint2, good_matches, dst, Scalar::all(-1), Scalar::all(-1), std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+
+	imshow("dst", dst);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void find_homography()
+{
+	Mat src1 = imread("box.png", IMREAD_GRAYSCALE);
+	Mat src2 = imread("box_in_scene.png", IMREAD_GRAYSCALE);
+
+	if (isEmpty(src1) || isEmpty(src2))
+		return;
+
+	Ptr<Feature2D> orb = ORB::create();
+
+	std::vector<KeyPoint> kp1, kp2;
+	Mat desc1, desc2;
+	orb->detectAndCompute(src1, Mat(), kp1, desc1);
+	orb->detectAndCompute(src2, Mat(), kp2, desc2);
+
+	Ptr<DescriptorMatcher> matcher = BFMatcher::create(NORM_HAMMING);
+	std::vector<DMatch> matches;
+
+	matcher->match(desc1, desc2, matches);
+
+	std::sort(matches.begin(), matches.end());
+	std::vector<DMatch> good_matches(matches.begin(), matches.begin() + 50);
+
+	Mat dst;
+	drawMatches(src1, kp1, src2, kp2, good_matches, dst, Scalar::all(-1), Scalar::all(-1), std::vector<char>(), DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+
+	std::vector<Point2f> pts1, pts2;
+	for (size_t i = 0; i < good_matches.size(); ++i)
+	{
+		pts1.push_back(kp1[good_matches[i].queryIdx].pt);
+		pts2.push_back(kp2[good_matches[i].trainIdx].pt);
+	}
+
+	Mat H = findHomography(pts1, pts2, RANSAC);
+	
+	std::vector<Point2f> corner1, corner2;
+	corner1.push_back(Point2f(0, 0));
+	corner1.push_back(Point2f(src1.cols - 1.f, 0));
+	corner1.push_back(Point2f(src1.cols - 1.f, src1.rows - 1.f));
+	corner1.push_back(Point2f(0, src1.rows - 1.f));
+	perspectiveTransform(corner1, corner2, H);
+
+	std::vector<Point> corner_dst;
+
+	for (Point2f pt : corner2)
+	{
+		corner_dst.push_back(Point(cvRound(pt.x + src1.cols), cvRound(pt.y)));
+	}
+
+	polylines(dst, corner_dst, true, Scalar(0, 255, 0), 2, LINE_AA);
+
+	imshow("dst", dst);
+
+	waitKey();
+	destroyAllWindows();
+}
+
+void stitch_img()
+{
+	std::vector<Mat> imgs;
+	std::string img_name[3] = { "img1.jpg", "img2.jpg" , "img3.jpg" };
+
+	for (int i = 0; i < 3; ++i)
+	{
+		Mat img = imread(img_name[i]);
+		if (isEmpty(img))
+			return;
+		imgs.push_back(img);
+	}
+
+	Ptr<Stitcher> stitcher = Stitcher::create();
+
+	Mat dst;
+	Stitcher::Status status = stitcher->stitch(imgs, dst);
+
+	if (status != Stitcher::Status::OK)
+	{
+		std::cerr << "Error on stitching!\n";
+		return;
+	}
+
+	imshow("dst", dst);
+	waitKey();
+	destroyAllWindows();
+}
+
+Mat knn_img;
+Mat knn_train, knn_label;
+Ptr<KNearest> knn;
+
+int k_value = 1;
+
+void on_k_change(int, void*)
+{
+	if (k_value < 1)
+		k_value = 1;
+
+	if (!isEmpty(knn_train))
+		trainAndDisplay();
+		
+}
+
+void addPoint(const Point& pt, int cls)
+{
+	Mat new_sample = (Mat_<float>(1, 2) << pt.x, pt.y);
+	knn_train.push_back(new_sample);
+
+	Mat new_label = (Mat_<int>(1, 1) << cls);
+	knn_label.push_back(new_label);
+}
+
+void trainAndDisplay()
+{
+	knn->train(knn_train, ROW_SAMPLE, knn_label);
+
+	for (int i = 0; i < knn_img.rows; ++i) {
+		for (int j = 0; j < knn_img.cols; ++j) {
+			Mat sample = (Mat_<float>(1, 2) << j, i);
+
+			Mat res;
+			knn->findNearest(sample, k_value, res);
+
+			int response = cvRound(res.at<float>(0, 0));
+			if (response == 0)
+				knn_img.at<Vec3b>(i, j) = Vec3b(128, 128, 255); // R
+			else if (response == 1)
+				knn_img.at<Vec3b>(i, j) = Vec3b(128, 255, 128); // G
+			else if (response == 2)
+				knn_img.at<Vec3b>(i, j) = Vec3b(255, 128, 128); // B
+		}
+	}
+
+	for (int i = 0; i < knn_train.rows; i++)
+	{
+		int x = cvRound(knn_train.at<float>(i, 0));
+		int y = cvRound(knn_train.at<float>(i, 1));
+		int l = knn_label.at<int>(i, 0);
+
+		if (l == 0)
+			circle(knn_img, Point(x, y), 5, Scalar(0, 0, 128), -1, LINE_AA);
+		else if (l == 1)
+			circle(knn_img, Point(x, y), 5, Scalar(0, 128, 0), -1, LINE_AA);
+		else if (l == 2)
+			circle(knn_img, Point(x, y), 5, Scalar(128, 0, 0), -1, LINE_AA);
+	}
+
+	imshow("knn", knn_img);
+}
+
+void knn_practice()
+{
+	knn_img = Mat::zeros(Size(500, 500), CV_8UC3);
+	knn = KNearest::create();
+
+	namedWindow("knn");
+	createTrackbar("k", "knn", &k_value, 5, on_k_change);
+
+	const int num = 30;
+	Mat rn(num, 2, CV_32SC1);
+
+	randn(rn, 0, 50);
+	for (int i = 0; i < num; ++i)
+	{
+		addPoint(Point(rn.at<int>(i, 0) + 150, rn.at<int>(i, 1) + 150), 0);
+	}
+
+	randn(rn, 0, 50);
+	for (int i = 0; i < num; ++i)
+	{
+		addPoint(Point(rn.at<int>(i, 0) + 350, rn.at<int>(i, 1) + 150), 1);
+	}
+
+	randn(rn, 0, 70);
+	for (int i = 0; i < num; ++i)
+	{
+		addPoint(Point(rn.at<int>(i, 0) + 250, rn.at<int>(i, 1) + 400), 2);
+	}
+
+	trainAndDisplay();
+
+	waitKey();
+	return;
+}
 
 
 

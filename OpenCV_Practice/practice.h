@@ -104,4 +104,7 @@ void on_k_change(int, void*);
 void addPoint(const Point& pt, int cls);
 void trainAndDisplay();
 void knn_practice();
+void knn_pilgichae();
+Ptr<KNearest> train_knn();
+void knn_on_mouse(int evt, int x, int y, int flags, void* userdata);
 #endif

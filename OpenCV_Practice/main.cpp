@@ -6,5 +6,5 @@ using namespace cv;
 
 int main()
 {
-	knn_practice();
+	knn_pilgichae();
 }

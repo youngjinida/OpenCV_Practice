@@ -6,6 +6,7 @@
 
 using namespace cv;
 using namespace cv::ml;
+using namespace cv::dnn;
 using namespace std;
 
 
@@ -107,4 +108,8 @@ void knn_practice();
 void knn_pilgichae();
 Ptr<KNearest> train_knn();
 void knn_on_mouse(int evt, int x, int y, int flags, void* userdata);
+void svmplane();
+Ptr<SVM> train_hog_svm(const HOGDescriptor& hog);
+void hog_pilgichae();
+void dnnmnist();
 #endif

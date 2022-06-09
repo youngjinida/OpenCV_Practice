@@ -2474,6 +2474,168 @@ void knn_pilgichae()
 	}
 }
 
+void svmplane()
+{
+	Mat train = Mat_<float>({ 8, 2 },
+		{ 150, 200, 200, 250, 100, 250, 150, 300,
+		350, 100, 400, 200 ,400 ,300 ,350, 400 });
+	Mat label = Mat_<int>({ 8, 1 }, { 0, 0, 0, 0, 1, 1, 1, 1 });
+
+	Ptr<SVM> svm = SVM::create();
+	svm->setType(SVM::Types::C_SVC);
+	svm->setKernel(SVM::KernelTypes::RBF);
+	svm->trainAuto(train, ROW_SAMPLE, label);
+
+	Mat img = Mat::zeros(Size(500, 500), CV_8UC3);
+	for (int j = 0; j < img.rows; ++j)
+	{
+		for (int i = 0; i < img.cols; ++i)
+		{
+			Mat test = Mat_<float>({ 1, 2 }, { (float)i, (float)j });
+			int res = cvRound(svm->predict(test));
+
+			if (res == 0)
+				img.at<Vec3b>(j, i) = Vec3b(128, 128, 255);
+			else
+				img.at<Vec3b>(j, i) = Vec3b(128, 255, 128);
+		}
+	}
+
+	for (int i = 0; i < train.rows; ++i)
+	{
+		int x = cvRound(train.at<float>(i, 0));
+		int y = cvRound(train.at<float>(i, 1));
+		int l = label.at<int>(i, 0);
+
+		if (l == 0)
+			circle(img, Point(x, y), 5, Scalar(0, 0, 128), -1, LINE_AA);
+		else
+			circle(img, Point(x, y), 5, Scalar(0, 128, 0), -1, LINE_AA);
+	}
+
+	imshow("svm", img);
+
+	waitKey();
+}
+
+Ptr<SVM> train_hog_svm(const HOGDescriptor& hog)
+{
+	Mat digits = imread("digits.png", IMREAD_GRAYSCALE);
+
+	if (isEmpty(digits))
+		return 0;
+
+	Mat train_hog, train_labels;
+
+	for (int j = 0; j < 50; ++j)
+	{
+		for (int i = 0; i < 100; ++i)
+		{
+			Mat roi = digits(Rect(i * 20, j * 20, 20, 20));
+			vector<float> desc;
+			hog.compute(roi, desc);
+
+			Mat desc_mat(desc);
+
+			train_hog.push_back(desc_mat.t());
+			train_labels.push_back(j / 5);
+		}
+	}
+
+	Ptr<SVM> svm = SVM::create();
+	svm->setType(SVM::Types::C_SVC);
+	svm->setKernel(SVM::KernelTypes::RBF);
+	svm->setC(2.5);
+	svm->setGamma(0.50625);
+	svm->train(train_hog, ROW_SAMPLE, train_labels);
+
+	return svm;
+	
+}
+
+void hog_pilgichae()
+{
+	HOGDescriptor hog(Size(20, 20), Size(10, 10), Size(5, 5), Size(5, 5), 9);
+
+	Ptr<SVM> svm = train_hog_svm(hog);
+
+	if (svm.empty())
+	{
+		cerr << "Training failed!\n";
+		return;
+	}
+
+	Mat img = Mat::zeros(400, 400, CV_8U);
+
+	imshow("img", img);
+	setMouseCallback("img", knn_on_mouse, (void*)&img);
+
+	while (true)
+	{
+		int c = waitKey();
+
+		if (c == 27)
+			break;
+		else if (c == ' ')
+		{
+			Mat img_resize;
+			resize(img, img_resize, Size(20, 20), 0, 0, INTER_AREA);
+
+			vector<float> desc;
+			hog.compute(img_resize, desc);
+
+			Mat desc_Mat(desc);
+
+			int res = cvRound(svm->predict(desc_Mat.t()));
+			cout << res << "\n";
+
+			img.setTo(0);
+			imshow("img", img);
+		}
+	}
+}
+
+void dnnmnist()
+{
+	Net net = readNet("mnist_cnn.pb");
+	if (net.empty())
+		return;
+
+	Mat img = Mat::zeros(400, 400, CV_8UC1);
+	imshow("img", img);
+
+	setMouseCallback("img", knn_on_mouse, (void*)&img);
+
+	while (true)
+	{
+		int c = waitKey();
+
+		if (c == 27)
+			break;
+		else if (c == ' ')
+		{
+			Mat inputBlob = blobFromImage(img, 1 / 255.f, Size(28, 28));
+			net.setInput(inputBlob);
+			Mat prob = net.forward();
+
+			double maxVal;
+			Point maxLoc;
+			minMaxLoc(prob, NULL, &maxVal, NULL, &maxLoc);
+			int digit = maxLoc.x;
+
+			cout << digit << " (" << maxVal * 100 << "%)\n";
+
+			img.setTo(0);
+			imshow("img", img);
+		}
+	}
+}
+
+
+
+
+
+
 
 
 

@@ -3,6 +3,7 @@
 
 #include "opencv2/opencv.hpp"
 #include <iostream>
+#include <fstream>
 
 using namespace cv;
 using namespace cv::ml;
@@ -112,4 +113,6 @@ void svmplane();
 Ptr<SVM> train_hog_svm(const HOGDescriptor& hog);
 void hog_pilgichae();
 void dnnmnist();
+void googlenet_classify();
+void face_detect();
 #endif

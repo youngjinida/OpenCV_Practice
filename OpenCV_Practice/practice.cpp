@@ -2631,6 +2631,119 @@ void dnnmnist()
 	}
 }
 
+void googlenet_classify()
+{
+	Mat img = imread("beagle.jpg");
+
+	Net net = readNet("bvlc_googlenet.caffemodel", "deploy.prototxt");
+
+	if (net.empty())
+	{
+		cerr << "Network load failed!\n";
+		return;
+	}
+
+	
+	ifstream fp("classification_calsses_ILSVRC2012.txt");
+	
+	if (!fp.is_open())
+	{
+		cerr << "Class file load failed\n";
+		return;
+	}
+
+	vector<String> classNames;
+	string name;
+
+	while (!fp.eof())
+	{
+		getline(fp, name);
+		if (name.length())
+			classNames.push_back(name);
+	}
+
+	fp.close();
+
+	Mat inputBlob = blobFromImage(img, 1, Size(224, 224), Scalar(104, 117, 123));
+	net.setInput(inputBlob);
+	Mat prob = net.forward();
+
+	double maxVal;
+	Point maxLoc;
+	minMaxLoc(prob, NULL, &maxVal, NULL, &maxLoc);
+
+	String str = format("%s (%4.21f%%)", classNames[maxLoc.x].c_str(), maxVal * 100);
+	putText(img, str, Point(10, 30), FONT_HERSHEY_COMPLEX, 0.8, Scalar(0, 0, 255));
+	imshow("img", img);
+	waitKey();
+}
+
+void face_detect()
+{
+	const String model = "res10_300x300_ssd_iter_140000_fp16.caffemodel";
+	const String config = "deploy.prototxt";
+
+	Mat img = imread("holo.png");
+
+	if (isEmpty(img))
+		return;
+
+	Net net = readNet(model, config);
+
+	if (net.empty())
+	{
+		cerr << "Net open failed!\n";
+		return;
+	}
+
+	Mat blob = blobFromImage(img, 1, Size(300, 300), Scalar(104, 177, 123));
+	net.setInput(blob);
+	Mat res = net.forward();
+
+	Mat detect(res.size[2], res.size[3], CV_32FC1, res.ptr<float>());
+
+	for (int i = 0; i < detect.rows; ++i)
+	{
+		float conf = detect.at<float>(i, 2);
+		if (conf < 0.5)
+			break;
+
+		int x1 = cvRound(detect.at<float>(i, 3) * img.cols);
+		int y1 = cvRound(detect.at<float>(i, 4) * img.rows);
+		int x2 = cvRound(detect.at<float>(i, 5) * img.cols);
+		int y2 = cvRound(detect.at<float>(i, 6) * img.rows);
+
+		rectangle(img, Rect(Point(x1, y1), Point(x2, y2)), Scalar(0, 255, 0));
+
+		String label = format("Face: %4.3f", conf);
+		putText(img, label, Point(x1, y1 - 1), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0));
+	}
+
+	imshow("img", img);
+	waitKey();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
